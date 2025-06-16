@@ -1,0 +1,41 @@
+Package: CORDE
+Type: Package
+Title: Confounder-adjusted Outcome-guided dimension Reduction and Discriminant Effect size
+Version: 0.1.0
+Author: Zihan Zhu, Ruitao Liu
+Maintainer: Ruitao Liu <rxl761@case.edu>
+Description: Implements a statistical framework for outcome-driven beta diversity 
+    analysis while adjusting for confounders. The method begins with 
+    Principal Coordinates Analysis (PCoA) on the abundance table, followed 
+    by projection onto the orthogonal complement of the confounder space 
+    to remove confounder-associated variation. Sparse Partial Least Squares 
+    (sPLS) is then applied to extract components associated with the outcome. 
+    Finally, taxa-level linear discriminant analysis (LDA) scores are computed 
+    to quantify each taxon's contribution to outcome-associated beta diversity. 
+    This unified score facilitates both global group separation assessment 
+    and identification of driving taxa.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.2
+Imports:
+    vegan,
+    ape,
+    cluster,
+    clue,
+    mixOmics,
+    mclust,
+    DescTools,
+    infotheo,
+    factoextra,
+    fossil,
+    ggplot2,
+    ggforce,
+    dplyr,
+    stats,
+    utils,
+    methods
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
