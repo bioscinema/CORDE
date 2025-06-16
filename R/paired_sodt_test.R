@@ -85,8 +85,8 @@ paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
   for (b in seq_len(nperm)) {
     Y_perm <- sample(Y)
     H_Yp <- hat_matrix(Y_perm)$H
-    s0 <- compute_sodt(G0, H_Yp)
-    s1 <- compute_sodt(G1, H_Yp)
+    s0 <- compute_sodt_simple(G0, H_Yp)
+    s1 <- compute_sodt_simple(G1, H_Yp)
     delta_SSB_perm[b] <- s1$SSB - s0$SSB
     delta_SSW_perm[b] <- s1$SSW - s0$SSW
     delta_F_perm[b] <- s1$F - s0$F
