@@ -2,46 +2,37 @@
 % Please edit documentation in R/Ordination_Eval.R
 \name{Ordination_Eval}
 \alias{Ordination_Eval}
-\title{Evaluate Ordination Quality Using Multiple Metrics}
+\title{Evaluate Ordination Coordinates Across Multiple Metrics}
 \usage{
 Ordination_Eval(D, Coordinates, expl_var, Y, X, ncomp = 2)
 }
 \arguments{
-\item{D}{A dissimilarity matrix (e.g., Bray-Curtis, UniFrac).}
+\item{D}{Original high-dimensional dissimilarity matrix (samples × samples).}
 
-\item{Coordinates}{A numeric matrix or data frame containing the ordination coordinates.}
+\item{Coordinates}{Ordination coordinates (samples × ncomp).}
 
-\item{expl_var}{A numeric vector of explained variance for the axes (e.g., from PCA).}
+\item{expl_var}{Vector of explained variance per component (usually from PCoA or sPLS).}
 
-\item{Y}{A factor or vector indicating the true group labels for each sample (e.g., phenotype).}
+\item{Y}{Outcome vector (factor or numeric).}
 
-\item{X}{A matrix or data frame of confounder variables to adjust for (e.g., batch, age).}
+\item{X}{Confounder matrix (samples × covariates), used to compute confounder-associated R².}
 
-\item{ncomp}{Integer specifying the number of components (default = 2).}
+\item{ncomp}{Number of ordination components (default: 2).}
 }
 \value{
-A named list containing the following evaluation metrics:
+A named list of evaluation metrics, including:
 \describe{
-  \item{ICR}{Information compression rate (sum of explained variance from first `ncomp` components).}
-  \item{TW}{Trustworthiness (neighborhood preservation from low-dim to high-dim).}
-  \item{Cont}{Continuity (neighborhood preservation from high-dim to low-dim).}
-  \item{Rand}{Rand index between clustering from PAM and true labels.}
-  \item{ARand}{Adjusted Rand index (ARI).}
-  \item{ASil}{Average silhouette width of PAM clustering in 2D space.}
-  \item{CARI}{Confounder-associated R² improvement (from McFadden's pseudo-R²).}
-  \item{rCMI}{Relative conditional mutual information between clustering and outcome, conditioned on confounders.}
+  \item{ICR}{Information Compression Rate: total variance explained by first two components.}
+  \item{TW}{Trustworthiness: neighbor preservation from low- to high-dimensional space.}
+  \item{Cont}{Continuity: neighbor preservation from high- to low-dimensional space.}
+  \item{Rand}{Rand index of clustering agreement.}
+  \item{ARand}{Adjusted Rand index.}
+  \item{ASil}{Average silhouette width from PAM clustering.}
+  \item{CARI}{Confounder-adjusted R² improvement (McFadden).}
+  \item{rCMI}{Relative conditional mutual information between clustering and outcome.}
 }
 }
 \description{
-This function evaluates the quality of an ordination (e.g., from PCA, t-SNE, CORDE)
-based on trustworthiness, continuity, clustering accuracy, silhouette width, and
-confounder association.
-}
-\examples{
-\dontrun{
-# Example usage:
-ord_res <- Ordination_Eval(D = dist_mat, Coordinates = pcoa_coords,
-                            expl_var = eigenvals[1:2], Y = group_labels, X = batch_data)
-print(ord_res)
-}
+This function evaluates the quality of a low-dimensional ordination (e.g., CORDE or PCoA)
+based on clustering, classification, and neighborhood preservation metrics.
 }

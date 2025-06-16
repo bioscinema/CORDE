@@ -48,19 +48,19 @@ paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
     list(H = H, k = ncol(Y_mat))
   }
 
-  # compute_sodt_simple <- function(G, H_Y) {
-  #   trace_G <- sum(diag(G))
-  #   SSB <- sum(H_Y * G)  # trace(H_Y G)
-  #   SSW <- trace_G - SSB
-  #   F_stat <- (SSB / (d - 1)) / (SSW / (n - d))
-  #   R <- diag(n) - H_Y
-  #   GR <- R %*% G
-  #   SSW_g <- sapply(groups, function(g) {
-  #     idx <- which(Y == g)
-  #     sum(diag(GR[idx, ] %*% t(R[idx, , drop = FALSE])))
-  #   })
-  #   list(SSB = SSB, SSW = SSW, SSW_g = SSW_g, F = F_stat)
-  # }
+  compute_sodt_simple <- function(G, H_Y) {
+    trace_G <- sum(diag(G))
+    SSB <- sum(H_Y * G)  # trace(H_Y G)
+    SSW <- trace_G - SSB
+    F_stat <- (SSB / (d - 1)) / (SSW / (n - d))
+    R <- diag(n) - H_Y
+    GR <- R %*% G
+    SSW_g <- sapply(groups, function(g) {
+      idx <- which(Y == g)
+      sum(diag(GR[idx, ] %*% t(R[idx, , drop = FALSE])))
+    })
+    list(SSB = SSB, SSW = SSW, SSW_g = SSW_g, F = F_stat)
+  }
 
   # Compute observed values
   G0 <- compute_gram(D0)

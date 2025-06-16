@@ -17,6 +17,7 @@ Description: Implements a statistical framework for outcome-driven beta diversit
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+LazyDataCompression: xz
 RoxygenNote: 7.3.2
 Imports:
     vegan,

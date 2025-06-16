@@ -42,9 +42,6 @@
 #'
 #' @export
 evaluate_taxon_removal_effect <- function(otu_df, remove_otu, group, diss) {
-  # Required packages
-  library(vegan)   # for vegdist, adonis2, mantel
-  library(cluster) # for silhouette, pam
 
   # Step 1: Compute baseline dissimilarity matrix
   n <- ncol(otu_df)

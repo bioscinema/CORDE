@@ -15,6 +15,9 @@
 #'   \item{p_value}{The permutation p-value.}
 #' }
 #'
+#' @importFrom stats glm binomial model.matrix var cmdscale as.dist wilcox.test
+#' @importFrom utils combn
+#' @importFrom grDevices chull
 #' @examples
 #' \dontrun{
 #' dist_mat <- as.matrix(vegan::vegdist(iris[,1:4]))
@@ -184,37 +187,6 @@ compute_sodt_fast <- function(D, Y, nperm = 999, seed = 2025) {
   ))
 }
 
-#' Compute SoDT Statistics (Single Matrix)
-#'
-#' @param G Centered Gram matrix (e.g., from -0.5 * J %*% D^2 %*% J)
-#' @param H_Y Hat matrix from group design matrix
-#' @param Y Group labels (factor or character)
-#'
-#' @return A list with between-group sum of squares (SSB),
-#'         within-group sum of squares (SSW),
-#'         group-specific SSW_g, and F-statistic.
-#'
-#' @export
-compute_sodt_simple <- function(G, H_Y, Y) {
-  n <- nrow(G)
-  groups <- unique(Y)
-  d <- length(groups)
-
-  trace_G <- sum(diag(G))
-  SSB <- sum(H_Y * G)
-  SSW <- trace_G - SSB
-  F_stat <- (SSB / (d - 1)) / (SSW / (n - d))
-
-  R <- diag(n) - H_Y
-  GR <- R %*% G
-
-  SSW_g <- vapply(groups, function(g) {
-    idx <- which(Y == g)
-    sum(diag(GR[idx, ] %*% t(R[idx, , drop = FALSE])))
-  }, numeric(1))
-
-  list(SSB = SSB, SSW = SSW, SSW_g = SSW_g, F = F_stat)
-}
 
 #' Compute Mantel-based Correlation Matrix Between OTUs and Environmental Axes
 #'
@@ -383,3 +355,15 @@ driving.taxa.lda <- function(
 
   return(Score)
 }
+
+#' Hadza gut microbiome dataset
+#'
+#' A sample phyloseq object from the Hadza gut microbiome, used as a demo.
+#'
+#' @format A `phyloseq` object named \code{physeq}.
+#' @source \url{https://www.nature.com/articles/ncomms3654}
+#' @name hadza
+#' @docType data
+"hadza"
+
+

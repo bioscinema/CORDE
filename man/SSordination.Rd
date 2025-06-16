@@ -2,7 +2,7 @@
 % Please edit documentation in R/SSordination.R
 \name{SSordination}
 \alias{SSordination}
-\title{Semi-Supervised Ordination (CORDE or ORDE)}
+\title{Semi Supervised Ordination with Confounder Adjustment}
 \usage{
 SSordination(
   dist,
@@ -15,33 +15,28 @@ SSordination(
 )
 }
 \arguments{
-\item{dist}{A dissimilarity matrix (e.g., from Bray-Curtis or UniFrac).}
+\item{dist}{A distance matrix (class 'dist') for PCoA.}
 
-\item{Y}{A vector of outcome labels (numeric or factor).}
+\item{Y}{A factor vector of outcome labels.}
 
-\item{X}{A matrix of confounders (optional, default = NULL).}
+\item{X}{Optional confounder matrix. Required for method = "CORDE".}
 
-\item{ncomp}{Number of components to extract (default = 2).}
+\item{ncomp}{Number of components to extract via sPLS-DA.}
 
-\item{eta}{Proportion of PCoA variance to retain in embedding (default = 0.99).}
+\item{eta}{Proportion of variance to retain from PCoA (default: 0.99).}
 
-\item{method}{Either "CORDE" (adjust for confounders) or "ORDE" (no adjustment).}
+\item{method}{Either "CORDE" (confounder-adjusted) or "ORDE" (raw).}
 
-\item{seed}{Integer seed for reproducibility.}
+\item{seed}{Random seed for reproducibility (default: 1).}
 }
 \value{
-A list with:
-\item{Embeddings}{Embedding matrix after confounder adjustment (or raw PCoA if ORDE).}
-\item{Coordinates}{sPLS component scores.}
-\item{Loadings}{sPLS loadings.}
-\item{expl_var}{Variance explained by each component.}
-\item{Y}{Outcome vector used in model.}
+A list containing:
+  \item{Embeddings}{PCoA embeddings (residualized if CORDE)}
+  \item{Coordinates}{Coordinates from sPLS-DA (PC1, PC2, ...)}
+  \item{Loadings}{Taxa/component loadings from sPLS-DA}
+  \item{expl_var}{Explained variance for selected components}
+  \item{Y}{Input outcome vector}
 }
 \description{
-Performs outcome-guided, confounder-adjusted ordination using sPLS on PCoA embeddings.
-}
-\examples{
-\dontrun{
-SSordination(dist = bray_mat, Y = factor(group), X = meta[, c("age", "sex")], method = "CORDE", seed = 42)
-}
+Performs PCoA followed by sPLS-DA, with optional confounder adjustment (CORDE).
 }
