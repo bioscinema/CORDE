@@ -36,7 +36,10 @@ Imports:
     stats,
     utils,
     methods,
-    Rcpp
+    Rcpp,
+    foreach,
+    parallel,
+    doParallel
 Suggests:
     testthat,
     knitr,

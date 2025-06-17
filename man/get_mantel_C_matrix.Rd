@@ -4,7 +4,7 @@
 \alias{get_mantel_C_matrix}
 \title{Compute Mantel-based Correlation Matrix Between OTUs and Environmental Axes}
 \usage{
-get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 0)
+get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 0, n_cores = 4)
 }
 \arguments{
 \item{otu_mat}{A matrix of OTU/ASV abundances (samples × features).}
@@ -15,6 +15,8 @@ get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 0)
 (default is `"bray"` for Bray-Curtis; passed to \code{\link[vegan]{vegdist}}).}
 
 \item{n_perm}{Integer, number of permutations for the Mantel test (default = 0, i.e., no permutation test).}
+
+\item{n_cores}{Number of CPU cores to use for parallel computation (default = 4).}
 }
 \value{
 A numeric matrix with dimensions (number of OTUs × number of axes) containing

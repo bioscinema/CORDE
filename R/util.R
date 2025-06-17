@@ -199,6 +199,7 @@ compute_sodt_fast <- function(D, Y, nperm = 999, seed = 2025) {
 #' @param dist_method Character string indicating the distance metric for OTU dissimilarity
 #'   (default is `"bray"` for Bray-Curtis; passed to \code{\link[vegan]{vegdist}}).
 #' @param n_perm Integer, number of permutations for the Mantel test (default = 0, i.e., no permutation test).
+#' @param n_cores Number of CPU cores to use for parallel computation (default = 4).
 #'
 #' @return A numeric matrix with dimensions (number of OTUs × number of axes) containing
 #'   Mantel correlation coefficients (Mantel r) for each OTU-axis pair.
@@ -208,6 +209,9 @@ compute_sodt_fast <- function(D, Y, nperm = 999, seed = 2025) {
 #'
 #' @importFrom vegan vegdist mantel
 #' @importFrom stats dist
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel stopImplicitCluster
 #'
 #' @examples
 #' \dontrun{
@@ -222,24 +226,41 @@ compute_sodt_fast <- function(D, Y, nperm = 999, seed = 2025) {
 #' }
 #'
 #' @export
-get_mantel_C_matrix <- function(otu_mat, E, dist_method = "bray", n_perm = 0) {
+get_mantel_C_matrix <- function(otu_mat, E, dist_method = "bray", n_perm = 0, n_cores = 4) {
   n_otus <- ncol(otu_mat)
   n_axes <- ncol(E)
+
   C_mat <- matrix(NA, nrow = n_otus, ncol = n_axes)
   rownames(C_mat) <- colnames(otu_mat)
   colnames(C_mat) <- colnames(E)
 
-  for (j in 1:n_otus) {
-    otu_j <- otu_mat[, j, drop = FALSE] + 0.5 # add pseudo counts
-    dist_j <- vegdist(otu_j, method = dist_method)
+  if (n_cores > 1) {
+    # Setup parallel backend
+    cl <- parallel::makeCluster(n_cores)
+    doParallel::registerDoParallel(cl)
+    on.exit({
+      parallel::stopCluster(cl)
+      foreach::registerDoSEQ()
+    })
+  }
 
+  result_list <- foreach::foreach(j = 1:n_otus, .packages = c("vegan", "stats")) %dopar% {
+    otu_j <- otu_mat[, j, drop = FALSE] + 0.5
+    dist_j <- vegan::vegdist(otu_j, method = dist_method)
+    row <- numeric(n_axes)
     for (l in 1:n_axes) {
       e_l <- E[, l, drop = FALSE]
       dist_e <- dist(e_l)
-      mantel_res <- mantel(dist_j, dist_e, permutations = n_perm)
-      C_mat[j, l] <- mantel_res$statistic  # Mantel r
+      mantel_res <- vegan::mantel(dist_j, dist_e, permutations = n_perm)
+      row[l] <- mantel_res$statistic
     }
+    row
   }
+
+  for (j in 1:n_otus) {
+    C_mat[j, ] <- result_list[[j]]
+  }
+
   return(C_mat)
 }
 
@@ -301,60 +322,6 @@ compute_lefse_style_score <- function(X, Y, eps = 1e-6) {
   return(lda_score)
 }
 
-
-#' Identify Driving Taxa Using Mantel Correlation and LEfSe-Style LDA Scores
-#'
-#' This function quantifies the importance of taxa in driving sample-level ordination patterns
-#' by integrating Mantel correlations between taxa profiles and ordination embeddings,
-#' LDA-based separation scores, and ordination loadings.
-#'
-#' @param OTU A numeric matrix of OTU/taxa abundances with taxa as rows and samples as columns.
-#' @param CORDE_res A list output from the \code{CORDE} method containing elements:
-#'   \code{Loadings} (taxa loadings), \code{Embeddings} (sample coordinates),
-#'   \code{Coordinates} (low-dimensional representations), and \code{Y} (class labels).
-#' @param dist_method Character string specifying the dissimilarity metric used,
-#'   consistent with the one used in the \code{CORDE} method (e.g., "bray").
-#'
-#' @return A named numeric vector of driving scores for each taxon.
-#'   Higher scores indicate stronger contributions to the observed separation in the ordination space.
-#'
-#' @details
-#' The driving score integrates three components:
-#' \enumerate{
-#'   \item \strong{Mantel correlation} between individual taxa and ordination axes.
-#'   \item \strong{LDA-style group separation scores} from sample ordination coordinates.
-#'   \item \strong{Normalized taxa loadings} indicating taxa contributions to axes.
-#' }
-#' Each component is normalized, and scores are combined via weighted matrix multiplication,
-#' scaled by 100 for interpretability.
-#'
-#'
-#' @seealso \code{\link{get_mantel_C_matrix}}, \code{\link{compute_lefse_style_score}}
-#'
-#' @export
-driving.taxa.lda <- function(
-    OTU, # OTU matrix, taxa as rows
-    CORDE_res, # CORDE output
-    dist_method # dissimilarity measure (the same as CORDE)
-){
-
-  W <- CORDE_res$Loadings
-
-  E <- CORDE_res$Embeddings
-  C_mat <- get_mantel_C_matrix(t(OTU), E, dist_method, n_perm = 0)
-
-  X <- CORDE_res$Coordinates
-  Y <- CORDE_res$Y
-  lda_score <- compute_lefse_style_score(X,Y)
-
-  W_norm <- apply(W, 2, function(x) x / sqrt(sum(x^2)))
-  C_norm <- t(apply(C_mat, 1, function(x) x / sqrt(sum(x^2))))
-
-  Score <- 100*as.vector(C_norm %*% W_norm %*% lda_score)
-  names(Score) <- rownames(OTU)
-
-  return(Score)
-}
 
 #' Hadza gut microbiome dataset
 #'
