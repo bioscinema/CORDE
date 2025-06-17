@@ -4,7 +4,7 @@
 \alias{driving.taxa.lda}
 \title{Identify Driving Taxa Using Mantel Correlation and LEfSe-Style LDA Scores}
 \usage{
-driving.taxa.lda(OTU, CORDE_res, dist_method, ncore = 4)
+driving.taxa.lda(OTU, CORDE_res, dist_method, n_cores = 4)
 }
 \arguments{
 \item{OTU}{A numeric matrix of OTU/taxa abundances with taxa as rows and samples as columns.}
