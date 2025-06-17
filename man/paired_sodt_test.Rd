@@ -21,14 +21,18 @@ paired_sodt_test(D0, D1, Y, nperm = 999, seed = 2025)
 A data frame with the following columns:
 \describe{
   \item{Source}{The source of variation (e.g., Between-group, Within-group).}
-  \item{Delta}{The change in the statistic from D0 to D1.}
-  \item{P_value}{The permutation-based two-sided p-value.}
+  \item{Delta}{The observed change in each statistic from \code{D0} to \code{D1}.}
+  \item{P_value}{The permutation-based two-sided p-value for each statistic.}
 }
 }
 \description{
 Performs a paired Sum-of-Distances Test (SoDT) to compare group-level
 dispersion and separation across two dissimilarity matrices (e.g., before and after treatment),
 while accounting for within-group variances and providing permutation-based p-values.
+}
+\details{
+Internally, this function uses a high-performance C++ implementation
+(via Rcpp and Armadillo) to accelerate permutation-based inference.
 }
 \examples{
 \dontrun{

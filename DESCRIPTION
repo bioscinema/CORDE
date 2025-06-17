@@ -35,8 +35,12 @@ Imports:
     dplyr,
     stats,
     utils,
-    methods
+    methods,
+    Rcpp
 Suggests:
     testthat,
     knitr,
     rmarkdown
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
