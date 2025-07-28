@@ -188,81 +188,45 @@ compute_sodt_fast <- function(D, Y, nperm = 999, seed = 2025) {
 }
 
 
-#' Compute Mantel-based Correlation Matrix Between OTUs and Environmental Axes
+#' Compute Cosine‐Similarity Matrix Between OTUs and Environmental Axes
 #'
-#' This function computes a Mantel statistic matrix (`C matrix`) measuring the correlation
-#' between dissimilarity profiles of each OTU and each axis of a given environmental or
-#' ordination matrix.
+#' This function computes the cosine similarity between each OTU abundance
+#' profile and each axis in an environmental or ordination matrix.
 #'
-#' @param otu_mat A matrix of OTU/ASV abundances (samples × features).
-#' @param E A numeric matrix of environmental or ordination axes (samples × axes).
-#' @param dist_method Character string indicating the distance metric for OTU dissimilarity
-#'   (default is `"bray"` for Bray-Curtis; passed to \code{\link[vegan]{vegdist}}).
-#' @param n_perm Integer, number of permutations for the Mantel test (default = 0, i.e., no permutation test).
-#' @param n_cores Number of CPU cores to use for parallel computation (default = 4).
+#' @param otu_mat A numeric matrix of OTU abundances (rows = samples, columns = OTUs).
+#' @param E A numeric matrix of environmental or ordination axes (rows = samples, columns = axes).
 #'
-#' @return A numeric matrix with dimensions (number of OTUs × number of axes) containing
-#'   Mantel correlation coefficients (Mantel r) for each OTU-axis pair.
+#' @return A numeric matrix of dimensions (number of OTUs × number of axes) where
+#'   each entry is the cosine similarity between an OTU profile and an axis.
+#'   Entries are \code{NA} if either vector has zero length.
 #'
-#' @details A small pseudocount (0.5) is added to each OTU profile to avoid zero-distance artifacts.
-#'   The function uses \code{\link[vegan]{mantel}} to compute the Mantel statistic.
-#'
-#' @importFrom vegan vegdist mantel
-#' @importFrom stats dist
-#' @importFrom foreach foreach %dopar%
-#' @importFrom parallel makeCluster stopCluster
-#' @importFrom doParallel registerDoParallel stopImplicitCluster
-#'
-#' @examples
-#' \dontrun{
-#' # Example OTU table (samples × OTUs) and ordination axes
-#' otu_mat <- matrix(rpois(100, lambda = 5), nrow = 10)
-#' colnames(otu_mat) <- paste0("OTU", 1:10)
-#' E <- matrix(rnorm(20), nrow = 10, ncol = 2)
-#' colnames(E) <- c("Axis1", "Axis2")
-#'
-#' C_mat <- get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 99)
-#' print(C_mat)
+#' @details
+#' Cosine similarity is defined as
+#' \deqn{
+#'   \mathrm{cos}(a,b) \;=\; \frac{a \cdot b}{\|a\|\;\|b\|}
 #' }
+#' where \eqn{\|\cdot\|} is the Euclidean norm.  This function
+#' uses a fully vectorized implementation via cross‐products and outer norms.
+#'
 #'
 #' @export
-get_mantel_C_matrix <- function(otu_mat, E, dist_method = "bray", n_perm = 0, n_cores = 4) {
-  n_otus <- ncol(otu_mat)
-  n_axes <- ncol(E)
+get_mantel_C_matrix <- function(otu_mat, E) {
+  # 1) compute column‐norms
+  otu_norms <- sqrt(colSums(otu_mat^2))
+  E_norms   <- sqrt(colSums(E^2))
 
-  C_mat <- matrix(NA, nrow = n_otus, ncol = n_axes)
-  rownames(C_mat) <- colnames(otu_mat)
-  colnames(C_mat) <- colnames(E)
+  # 2) raw dot‐products: (n_otus × n_axes)
+  D <- crossprod(otu_mat, E)
 
-  if (n_cores > 1) {
-    # Setup parallel backend
-    cl <- parallel::makeCluster(n_cores)
-    doParallel::registerDoParallel(cl)
-    on.exit({
-      parallel::stopCluster(cl)
-      foreach::registerDoSEQ()
-    })
-  }
+  # 3) divide by outer product of norms
+  denom <- outer(otu_norms, E_norms)
+  C     <- D / denom
 
-  result_list <- foreach::foreach(j = 1:n_otus, .packages = c("vegan", "stats")) %dopar% {
-    otu_j <- otu_mat[, j, drop = FALSE] + 0.5
-    dist_j <- vegan::vegdist(otu_j, method = dist_method)
-    row <- numeric(n_axes)
-    for (l in 1:n_axes) {
-      e_l <- E[, l, drop = FALSE]
-      dist_e <- dist(e_l)
-      mantel_res <- vegan::mantel(dist_j, dist_e, permutations = n_perm)
-      row[l] <- mantel_res$statistic
-    }
-    row
-  }
-
-  for (j in 1:n_otus) {
-    C_mat[j, ] <- result_list[[j]]
-  }
-
-  return(C_mat)
+  # 4) mask zero‐norm columns
+  C[denom == 0] <- NA
+  C
 }
+
 
 
 #' Compute LEfSe-Style Effect Size Scores for Features

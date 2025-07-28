@@ -2,45 +2,29 @@
 % Please edit documentation in R/util.R
 \name{get_mantel_C_matrix}
 \alias{get_mantel_C_matrix}
-\title{Compute Mantel-based Correlation Matrix Between OTUs and Environmental Axes}
+\title{Compute Cosine‐Similarity Matrix Between OTUs and Environmental Axes}
 \usage{
-get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 0, n_cores = 4)
+get_mantel_C_matrix(otu_mat, E)
 }
 \arguments{
-\item{otu_mat}{A matrix of OTU/ASV abundances (samples × features).}
+\item{otu_mat}{A numeric matrix of OTU abundances (rows = samples, columns = OTUs).}
 
-\item{E}{A numeric matrix of environmental or ordination axes (samples × axes).}
-
-\item{dist_method}{Character string indicating the distance metric for OTU dissimilarity
-(default is `"bray"` for Bray-Curtis; passed to \code{\link[vegan]{vegdist}}).}
-
-\item{n_perm}{Integer, number of permutations for the Mantel test (default = 0, i.e., no permutation test).}
-
-\item{n_cores}{Number of CPU cores to use for parallel computation (default = 4).}
+\item{E}{A numeric matrix of environmental or ordination axes (rows = samples, columns = axes).}
 }
 \value{
-A numeric matrix with dimensions (number of OTUs × number of axes) containing
-  Mantel correlation coefficients (Mantel r) for each OTU-axis pair.
+A numeric matrix of dimensions (number of OTUs × number of axes) where
+  each entry is the cosine similarity between an OTU profile and an axis.
+  Entries are \code{NA} if either vector has zero length.
 }
 \description{
-This function computes a Mantel statistic matrix (`C matrix`) measuring the correlation
-between dissimilarity profiles of each OTU and each axis of a given environmental or
-ordination matrix.
+This function computes the cosine similarity between each OTU abundance
+profile and each axis in an environmental or ordination matrix.
 }
 \details{
-A small pseudocount (0.5) is added to each OTU profile to avoid zero-distance artifacts.
-  The function uses \code{\link[vegan]{mantel}} to compute the Mantel statistic.
+Cosine similarity is defined as
+\deqn{
+  \mathrm{cos}(a,b) \;=\; \frac{a \cdot b}{\|a\|\;\|b\|}
 }
-\examples{
-\dontrun{
-# Example OTU table (samples × OTUs) and ordination axes
-otu_mat <- matrix(rpois(100, lambda = 5), nrow = 10)
-colnames(otu_mat) <- paste0("OTU", 1:10)
-E <- matrix(rnorm(20), nrow = 10, ncol = 2)
-colnames(E) <- c("Axis1", "Axis2")
-
-C_mat <- get_mantel_C_matrix(otu_mat, E, dist_method = "bray", n_perm = 99)
-print(C_mat)
-}
-
+where \eqn{\|\cdot\|} is the Euclidean norm.  This function
+uses a fully vectorized implementation via cross‐products and outer norms.
 }
