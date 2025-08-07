@@ -49,9 +49,6 @@
 #’ @useDynLib CORDE, .registration = TRUE
 #’ @importFrom Rcpp evalCpp
 #’ @export
-paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
-  # ... your function body ...
-}
 
 paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
   set.seed(seed)
