@@ -1,55 +1,26 @@
-#’ Paired Sum‐of‐Distances Test (SoDT) for Paired Dissimilarity Matrices
-#’
-#’ Performs a paired Sum‐of‐Distances Test to compare group‐level dispersion and separation
-#’ between two symmetric dissimilarity matrices (e.g. pre‐ vs. post‐treatment), while
-#’ accounting for within‐group variability.  Empirical p‐values are obtained via two
-#’ permutation schemes—group‐label shuffling (between‐group) and within‐sample swapping.
-#’
-#’ @param D0 Numeric matrix.  A symmetric dissimilarity matrix for condition 0
-#’   (e.g. “pre” measurements).  Must have zeros on the diagonal.
-#’ @param D1 Numeric matrix.  A symmetric dissimilarity matrix for condition 1
-#’   (e.g. “post” measurements).  Must have zeros on the diagonal.
-#’ @param Y  Factor or character vector of length n, giving the group label for each
-#’   of the n samples.  Groups define the “within‐group” strata for testing.
-#’ @param nperm Integer.  Number of permutations to use when computing empirical
-#’   p‐values (default = 999).
-#’ @param seed Integer.  Random seed for reproducibility of the permutation schemes
-#’   (default = 2025).
-#’
-#’ @return A `data.frame` with one row per test statistic:
-#’   \itemize{
-#’     \item **Between‐group**: change in between‐group sum‐of‐squares (ΔSSB).
-#’     \item **Within‐group**: change in within‐group sum‐of‐squares (ΔSSW).
-#’     \item **PERMANOVA F**: change in the classic F‐statistic.
-#’     \item **Within‐group (G)**: per‐group ΔSSW for each level of `Y`.
-#’   }
-#’   Columns are:
-#’   \describe{
-#’     \item{Source}{Name of the statistic.}
-#’     \item{Delta}{Observed difference \(\Delta\) = statistic\(_{D1}\) – statistic\(_{D0}\).}
-#’     \item{P_value}{Two‐sided empirical p‐value from the corresponding permutation null.}
-#’   }
-#’
-#’ @details
-#’ Internally, this function:
-#’ \enumerate{
-#’   \item Computes centering‐based Gram matrices \(G = -\tfrac12\,J D^2 J\) for each input.
-#’   \item Calculates observed SSB, SSW, and F by projecting onto the group hat‐matrix.
-#’   \item Uses a high‐performance C++ routine (via Rcpp/Armadillo) to accelerate
-#’     permutation inference in two schemes:
-#’     \itemize{
-#’       \item *Between‐group*: shuffle the labels in `Y` and recompute the hat‐matrix.
-#’       \item *Paired‐swap*: randomly swap entire rows/columns of \(`D0`,`D1`\) within samples.
-#’     }
-#’   \item Returns empirical p‐values with the standard \((1 + \#\{\lvert\Delta_{\rm perm}\rvert \ge \lvert\Delta_{\rm obs}\rvert\})/(n_{\rm perm}+1)\) adjustment.
-#’ }
-#’
-
-#’
-#’ @useDynLib CORDE, .registration = TRUE
-#’ @importFrom Rcpp evalCpp
-#’ @export
-
+#' Paired Sum-of-Distances Test (SoDT) for Paired Dissimilarity Matrices
+#'
+#' Performs a paired Sum-of-Distances Test to compare group-level dispersion and separation
+#' between two symmetric dissimilarity matrices (e.g., pre vs post), accounting for within-group variability.
+#' Empirical p-values are obtained via two permutation schemes: group-label shuffling and within-sample swapping.
+#'
+#' @param D0 Numeric matrix. Symmetric dissimilarity for condition 0 with zeros on the diagonal.
+#' @param D1 Numeric matrix. Symmetric dissimilarity for condition 1 with zeros on the diagonal.
+#' @param Y  Factor or character vector of length n giving the group label for each sample.
+#' @param nperm Integer. Number of permutations (default = 999).
+#' @param seed Integer. Random seed (default = 2025).
+#'
+#' @return A data.frame with rows for Between-group (ΔSSB), Within-group (ΔSSW), PERMANOVA F, and per-group ΔSSW.
+#' Columns: \code{Source}, \code{Delta}, \code{P_value}.
+#'
+#' @details
+#' Computes centered Gram matrices G = -1/2 * J D^2 J, projects onto the group hat-matrix,
+#' then uses Rcpp-accelerated permutations (between-group shuffles and paired swaps).
+#' P-values use (1 + #{|Δ_perm| >= |Δ_obs|}) / (nperm + 1).
+#'
+#' @useDynLib CORDE, .registration = TRUE
+#' @importFrom Rcpp evalCpp
+#' @export
 paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
   set.seed(seed)
 
