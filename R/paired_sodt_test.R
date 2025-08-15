@@ -78,6 +78,7 @@ paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
   delta_SSW_g <- sodt1$SSW_g - sodt0$SSW_g
   delta_F     <- sodt1$F     - sodt0$F
 
+
   # 4) between‐group permutations (shuffle Y only) ------------------------
   H_list  <- replicate(nperm, {
     H_perm <- hat_matrix(sample(Y))
@@ -127,7 +128,10 @@ paired_sodt_test <- function(D0, D1, Y, nperm = 999, seed = 2025) {
       "PERMANOVA F",
       paste0("Within-group (", groups, ")")
     ),
-    Delta   = c(delta_SSB, delta_SSW, delta_F,      delta_SSW_g),
+    Delta   = c(delta_SSB / sodt0$SSB,
+                delta_SSW / sodt0$SSW,
+                delta_F   / sodt0$F,
+                as.numeric(delta_SSW_g / sodt0$SSW_g)),
     P_value = c(
       pval_emp(delta_SSB,   delta_SSB_perm),
       pval_emp(delta_SSW,   delta_SSW_perm),
